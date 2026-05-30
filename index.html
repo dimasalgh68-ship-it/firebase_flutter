@@ -1,0 +1,2911 @@
+<!DOCTYPE html>
+<!-- saved from url=(0016)http://localhost -->
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ms="urn:schemas-microsoft-com:xslt" xmlns:bat="http://schemas.microsoft.com/battery/2012" xmlns:js="http://microsoft.com/kernel"><head><meta http-equiv="X-UA-Compatible" content="IE=edge"/><meta name="ReportUtcOffset" content="+7:00"/><title>Battery report</title><style type="text/css">
+
+      body {
+
+          font-family: Segoe UI Light;
+
+          letter-spacing: 0.02em;
+
+          background-color: #181818;
+
+          color: #F0F0F0;
+
+          margin-left: 5.5em;
+
+      }
+
+
+
+      h1 {
+
+          color: #11D8E8;
+
+          font-size: 42pt;
+
+      }
+
+
+
+      h2 {
+
+          font-size: 15pt;
+
+          color: #11EEF4;
+
+          margin-top: 4em;
+
+          margin-bottom: 0em;
+
+          letter-spacing: 0.08em;
+
+      }
+
+
+
+      td {
+
+          padding-left: 0.3em;
+
+          padding-right: 0.3em;
+
+      }
+
+
+
+      .nobatts {
+
+          font-family: Segoe UI Semibold;
+
+          background: #272727;
+
+          color: #ACAC60;
+
+          font-size: 13pt;
+
+          padding-left:0.4em;
+
+          padding-right:0.4em;
+
+          padding-top:0.3em;
+
+          padding-bottom:0.3em;
+
+      }
+
+
+
+      .explanation {
+
+          color: #777777;
+
+          font-size: 12pt;
+
+          margin-bottom: 1em;
+
+      }
+
+
+
+      .explanation2 {
+
+          color: #777777;
+
+          font-size: 12pt;
+
+          margin-bottom: 0.1em;
+
+      }
+
+
+
+      table {
+
+          border-width: 0;
+
+          table-layout: fixed;
+
+          font-family: Segoe UI Light;
+
+          letter-spacing: 0.02em;
+
+          background-color: #181818;
+
+          color: #f0f0f0;
+
+      }
+
+
+
+      .even { background: #272727; }
+
+      .odd { background: #1E1E1E; }
+
+      .even.suspend { background: #1A1A28; }
+
+      .odd.suspend { background: #1A1A2C; }
+
+
+
+      thead {
+
+          font-family: Segoe UI Semibold;
+
+          font-size: 85%;
+
+          color: #BCBCBC;
+
+      }
+
+
+
+      text {
+
+          font-size: 12pt;
+
+          font-family: Segoe UI Light;
+
+          fill: #11EEF4;
+
+      }
+
+
+
+      .centered { text-align: center; }
+
+
+
+      .label {
+
+          font-family: Segoe UI Semibold;
+
+          font-size: 85%;
+
+          color: #BCBCBC;
+
+      }
+
+
+
+      .dc.even { background: #40182C; }
+
+      .dc.odd { background: #30141F; }
+
+
+
+      td.colBreak {
+
+          padding: 0;
+
+          width: 0.15em;
+
+      }
+
+
+
+      td.state { text-align: center; }
+
+
+
+      td.hms {
+
+          font-family: Segoe UI Symbol;
+
+          text-align: right;
+
+          padding-right: 3.4em;
+
+      }
+
+
+
+      td.dateTime { font-family: Segoe UI Symbol; }
+
+      td.nullValue { text-align: center; }
+
+
+
+      td.percent {
+
+          font-family: Segoe UI Symbol;
+
+          text-align: right;
+
+          padding-right: 2.5em;
+
+      }
+
+
+
+      col:first-child { width: 13em; }
+
+      col.col2 { width: 10.4em; }
+
+      col.percent { width: 7.5em; }
+
+
+
+      td.mw {
+
+          text-align: right;
+
+          padding-right: 2.5em;
+
+      }
+
+
+
+      td.acdc { text-align: center; }
+
+
+
+      span.date {
+
+          display: inline-block;
+
+          width: 5.5em;
+
+      }
+
+
+
+      span.time {
+
+          text-align: right;
+
+          width: 4.2em;
+
+          display: inline-block;
+
+      }
+
+
+
+      text { font-family: Segoe UI Symbol; }
+
+
+
+      .noncontigbreak {
+
+          height: 0.3em;
+
+          background-color: #1A1A28;
+
+      }
+
+    </style><script type="text/javascript">
+
+    // Formats a number using the current locale (to handle the 1000's separator).
+
+    // The result is rounded so no decimal point is shown.
+
+    function numberToLocaleString(value) {
+
+        var localeString = Math.round(parseFloat(value + '')).toLocaleString();
+
+        return localeString.substring(0, localeString.indexOf('.'));
+
+    }
+
+
+
+    function padLeft(number, length) {
+
+        var str = '' + number;
+
+        while (str.length < length) {
+
+            str = '0' + str;
+
+        }
+
+
+
+        return str;
+
+    }
+
+
+
+    // Returns the number of milliseconds between 2 date-times represented as strings.
+
+    function msBetween(startTime, endTime) {
+
+        return startTime > endTime
+
+               ? msBetween(endTime, startTime)
+
+               : parseDateTime(endTime) - parseDateTime(startTime);
+
+    }
+
+
+
+    var dateFormat = /(\d{4})-(\d{2})-(\d{2})[T](\d{2}):(\d{2}):(\d{2})/
+
+
+
+    // Parses a date-time string and returns a Date (i.e. number of milliseconds)
+
+    function parseDateTime(value) {
+
+        if (!value) {
+
+            return 0;
+
+        }
+
+
+
+        var match = dateFormat.exec(value)
+
+        if (!match) {
+
+            return 0;
+
+        }
+
+
+
+        return Date.parse(match[1] + '/' + match[2] + '/' +
+
+                          match[3] + ' ' + match[4] + ':' +
+
+                          match[5] + ':' + match[6])
+
+    }
+
+
+
+    // Parses just the date portion of a date-time string and returns a Date
+
+    // (i.e. number of milliseconds)
+
+    function parseDate(value) {
+
+        if (!value) {
+
+            return 0;
+
+        }
+
+
+
+        var match = dateFormat.exec(value)
+
+        if (!match) {
+
+            return 0;
+
+        }
+
+
+
+        return Date.parse(match[1] + '/' + match[2] + '/' + match[3])
+
+    }
+
+
+
+    var durationFormat = /P((\d+)D)?T((\d+)H)?((\d+)M)?(\d+)S/
+
+
+
+    // Convert a string of the form P10DT1H15M40S to a count of milliseconds
+
+    function parseDurationToMs(value) {
+
+        var match = durationFormat.exec(value)
+
+        if (!match) {
+
+            return 0
+
+        }
+
+
+
+        var days = parseInt(match[2] || '0');
+
+        var hrs = parseInt(match[4] || '0');
+
+        var mins = parseInt(match[6] || '0');
+
+        var secs = parseInt(match[7] || '0');
+
+        return ((((((days * 24) + hrs) * 60) + mins) * 60) +  secs) * 1000;
+
+    }
+
+
+
+    // Converts milliseconds to days
+
+    function msToDays(ms) {
+
+        return (ms / 1000 / 60 / 60 / 24);
+
+    }
+
+
+
+    function daysToMs(days) {
+
+        return (days * 24 * 60 * 60 * 1000);
+
+    }
+
+
+
+    // Formats a number of milliseconds as h:mm:ss
+
+    function formatDurationMs(value) {
+
+        var ms = parseInt(value);
+
+        var secs = ms / 1000;
+
+        var mins = secs / 60;
+
+        var hrs = Math.floor(mins / 60);
+
+        mins = Math.floor(mins % 60);
+
+        secs = Math.floor(secs % 60);
+
+        return hrs + ':' + padLeft(mins,2) + ':' + padLeft(secs,2);
+
+    }
+
+
+
+    // Converts a millisecond timestamp to a day and month string
+
+    // Note: dayOffset is forward from date.
+
+    function dateToDayAndMonth(ms, dayOffset) {
+
+        var adjustedDate = new Date(ms + (dayOffset * 24 * 60 * 60 * 1000));
+
+        return padLeft(adjustedDate.getMonth() + 1, 2) + "-" +
+
+               padLeft(adjustedDate.getDate(), 2);
+
+    }
+
+
+
+    // Takes a millisecond timestamp and returns a new millisecond timestamp
+
+    // rounded down to the current day.
+
+    function dateFloor(ms) {
+
+        var dt = new Date(ms);
+
+        return Date.parse(dt.getFullYear() + '/' + (dt.getMonth() + 1) + '/' + dt.getDate());
+
+    }
+
+    
+
+    Timegraph = {
+
+        axisTop: 9.5,
+
+        axisRight: 24.5,
+
+        axisBottom: 25.5,
+
+        axisLeft: 25.5,
+
+        ticks: 10,
+
+
+
+        // Maximum number of 24 hour ticks for showing 12 and 6 hour ticks
+
+
+
+        ticks12Hour: 8,
+
+        ticks6Hour: 4,
+
+
+
+        // Shading
+
+
+
+        lineColor: "#B82830",
+
+        shadingColor: "#4d1d35",
+
+
+
+        precompute: function (graph) {
+
+            var canvas = graph.canvas;
+
+            var data = graph.data;
+
+            var min = 0;
+
+            var max = 0;
+
+
+
+            graph.height = canvas.height - Timegraph.axisTop - Timegraph.axisBottom;
+
+            graph.width = canvas.width - Timegraph.axisLeft - Timegraph.axisRight;
+
+            for (var i = 0; i < data.length; i++) {
+
+                data[i].t0 = parseDateTime(data[i].x0);
+
+                data[i].t1 = parseDateTime(data[i].x1);
+
+
+
+                if (i == 0) {
+
+                    min = data[i].t0;
+
+                    max = data[i].t1;
+
+                }
+
+
+
+                if (data[i].t0 < min) {
+
+                    min = data[i].t0;
+
+                }
+
+
+
+                if (data[i].t1 > max) {
+
+                    max = data[i].t1;
+
+                }
+
+
+
+                data[i].yy0 =
+
+                    Timegraph.axisTop + graph.height - data[i].y0 * graph.height;
+
+
+
+                data[i].yy1 =
+
+                    Timegraph.axisTop + graph.height - data[i].y1 * graph.height;
+
+            }
+
+
+
+            if (graph.startTime != null) {
+
+                graph.startMs = parseDateTime(graph.startTime);
+
+
+
+            } else {
+
+                graph.startMs = min;
+
+            }
+
+
+
+            graph.endMs = max;
+
+            graph.durationMs = max - min;
+
+        },
+
+
+
+        drawFrame: function (graph) {
+
+            var canvas = graph.canvas;
+
+            var context = graph.context;
+
+
+
+            graph.width =
+
+                canvas.width - Timegraph.axisRight - Timegraph.axisLeft;
+
+
+
+            graph.height =
+
+                canvas.height - Timegraph.axisTop - Timegraph.axisBottom;
+
+
+
+            context.beginPath();
+
+            context.moveTo(Timegraph.axisLeft, Timegraph.axisTop);
+
+            context.lineTo(Timegraph.axisLeft + graph.width,
+
+                           Timegraph.axisTop);
+
+
+
+            context.lineTo(Timegraph.axisLeft + graph.width,
+
+                           Timegraph.axisTop + graph.height);
+
+
+
+            context.lineTo(Timegraph.axisLeft,
+
+                           Timegraph.axisTop + graph.height);
+
+
+
+            context.lineTo(Timegraph.axisLeft, Timegraph.axisTop);
+
+            context.strokeStyle = "#c0c0c0";
+
+            context.stroke();
+
+        },
+
+
+
+        drawRange: function (graph) {
+
+            var canvas = graph.canvas;
+
+            var context = graph.context;
+
+
+
+            context.font = "12pt Segoe UI";
+
+            context.fillStyle = "#00b0f0";
+
+            context.fillText("%", 0, Timegraph.axisTop + 5, Timegraph.axisLeft);
+
+
+
+            var tickSpacing = graph.height / 10;
+
+            var offset = Timegraph.axisTop + tickSpacing;
+
+            var tickValue = 90;
+
+            for (var i = 0; i < 9; i++) {
+
+                context.beginPath();
+
+                context.moveTo(Timegraph.axisLeft, offset);
+
+                context.lineTo(Timegraph.axisLeft + graph.width,
+
+                               offset);
+
+
+
+                context.stroke();
+
+                context.fillText(tickValue.toString(),
+
+                                 0,
+
+                                 offset + 5,
+
+                                 Timegraph.axisLeft);
+
+
+
+                offset += tickSpacing;
+
+                tickValue -= 10;
+
+            }
+
+        },
+
+
+
+        drawDomain: function (graph, start, end) {
+
+            var canvas = graph.canvas;
+
+            var context = graph.context;
+
+            var data = graph.data;
+
+            var duration = end - start;
+
+            if ((end < start)) {
+
+                return;
+
+            }
+
+
+
+            var startDay = dateFloor(start);
+
+            var t0 = startDay;
+
+            var t1 = dateFloor(end);
+
+            var dayOffset = 0;
+
+            if (start > t0) {
+
+                t0 = t0 + daysToMs(1);
+
+                dayOffset++;
+
+            }
+
+
+
+            if (t0 >= t1) {
+
+                return;
+
+            }
+
+
+
+            var increment =
+
+                Math.max(Math.floor((t1 - t0) / daysToMs(Timegraph.ticks)), 1);
+
+
+
+            var incrementMs = daysToMs(increment);
+
+            var spacing = (incrementMs / duration) * graph.width;
+
+            var offset = (t0 - start) / duration;
+
+            var ticksCount = Math.floor((t1 - t0) / incrementMs);
+
+            for (offset = offset * graph.width + Timegraph.axisLeft;
+
+                 offset < (graph.width + Timegraph.axisLeft);
+
+                 offset += spacing) {
+
+
+
+                context.beginPath();
+
+                context.moveTo(offset, Timegraph.axisTop);
+
+                context.lineTo(offset, Timegraph.axisTop + graph.height);
+
+                context.stroke();
+
+                context.fillText(dateToDayAndMonth(startDay, dayOffset),
+
+                                 offset,
+
+                                 Timegraph.axisTop + graph.height + 15,
+
+                                 spacing);
+
+
+
+                dayOffset += increment;
+
+            }
+
+        },
+
+
+
+        plot: function (graph, start, end) {
+
+            var canvas = graph.canvas;
+
+            var context = graph.context
+
+            var data = graph.data;
+
+
+
+            if ((end < start)) {
+
+                return;
+
+            }
+
+
+
+            var duration = end - start;
+
+            Timegraph.drawDomain(graph, start, end);
+
+            context.fillStyle = Timegraph.shadingColor;
+
+            for (var i = 0; i < data.length - 1; i++) {
+
+                if ((data[i].t0 < start) || (data[i].t0 > end) ||
+
+                    (data[i].t1 > end)) {
+
+
+
+                    continue;
+
+                }
+
+
+
+                var x1 = (data[i].t0 - start) / duration;
+
+                x1 = x1 * graph.width + Timegraph.axisLeft;
+
+
+
+                var x2 = (data[i].t1 - start) / duration;
+
+                x2 = x2 * graph.width + Timegraph.axisLeft;
+
+
+
+                context.globalAlpha = 0.3;
+
+                context.fillRect(x1, Timegraph.axisTop, (x2 - x1), graph.height);
+
+                context.globalAlpha = 1;
+
+                context.beginPath();
+
+                context.strokeStyle = Timegraph.lineColor;
+
+                context.lineWidth = 1.5;
+
+                context.moveTo(x1, data[i].yy0);
+
+                context.lineTo(x2, data[i].yy1);
+
+                context.stroke();
+
+            }
+
+        },
+
+
+
+        draw: function (graph) {
+
+            var canvas = document.getElementById(graph.element);
+
+            if (canvas == null) {
+
+                return;
+
+            }
+
+
+
+            var context = canvas.getContext('2d');
+
+            if (context == null) {
+
+                return;
+
+            }
+
+
+
+            graph.width = 0;
+
+            graph.height = 0;
+
+            graph.context = context;
+
+            graph.canvas = canvas;
+
+
+
+            Timegraph.precompute(graph);
+
+            Timegraph.drawFrame(graph);
+
+            Timegraph.drawRange(graph);
+
+            Timegraph.plot(graph, graph.startMs, graph.endMs);
+
+        }
+
+    };
+
+    
+
+    drainGraphData = [
+
+    { x0: "2026-02-19T10:20:09", x1: "2026-02-19T10:25:06", y0: 0.8926854641985937, y1: 0.8754842875591907 }, 
+
+{ x0: "2026-02-19T10:25:06", x1: "2026-02-19T10:31:26", y0: 0.8754842875591907, y1: 0.8616013775290573 }, 
+
+{ x0: "2026-02-19T10:34:49", x1: "2026-02-19T10:35:24", y0: 0.8589108910891089, y1: 0.8570454871574114 }, 
+
+{ x0: "2026-02-19T10:35:24", x1: "2026-02-19T11:21:00", y0: 0.8570454871574114, y1: 0.7201176639403071 }, 
+
+{ x0: "2026-02-19T11:21:00", x1: "2026-02-19T11:22:00", y0: 0.7201176639403071, y1: 0.7174271775003588 }, 
+
+{ x0: "2026-02-19T11:22:00", x1: "2026-02-19T11:40:51", y0: 0.7174271775003588, y1: 0.6546491605682307 }, 
+
+{ x0: "2026-02-19T11:40:51", x1: "2026-02-19T11:57:10", y0: 0.6546491605682307, y1: 0.6154936145788492 }, 
+
+{ x0: "2026-02-19T11:57:10", x1: "2026-02-19T12:00:14", y0: 0.6154936145788492, y1: 0.6067943750896829 }, 
+
+{ x0: "2026-02-19T12:00:14", x1: "2026-02-19T12:04:51", y0: 0.6067943750896829, y1: 0.5958171904146936 }, 
+
+{ x0: "2026-02-19T12:04:51", x1: "2026-02-19T12:14:33", y0: 0.5958171904146936, y1: 0.5634954799827809 }, 
+
+{ x0: "2026-02-19T12:14:33", x1: "2026-02-19T12:21:00", y0: 0.5634954799827809, y1: 0.5496125699526474 }, 
+
+{ x0: "2026-02-19T12:21:00", x1: "2026-02-19T12:21:44", y0: 0.5496125699526474, y1: 0.5465095422585737 }, 
+
+{ x0: "2026-02-19T12:29:45", x1: "2026-02-19T12:30:20", y0: 0.5436038169034295, y1: 0.5413258717176065 }, 
+
+{ x0: "2026-02-19T12:30:20", x1: "2026-02-19T12:36:27", y0: 0.5413258717176065, y1: 0.5218467498923806 }, 
+
+{ x0: "2026-02-19T12:36:27", x1: "2026-02-19T12:43:12", y0: 0.5218467498923806, y1: 0.5052733534222987 }, 
+
+{ x0: "2026-02-19T12:43:12", x1: "2026-02-19T12:46:38", y0: 0.5052733534222987, y1: 0.4949239489166308 }, 
+
+{ x0: "2026-02-19T12:46:38", x1: "2026-02-19T12:48:26", y0: 0.4949239489166308, y1: 0.49036805854498494 }, 
+
+{ x0: "2026-02-19T12:48:26", x1: "2026-02-19T13:22:00", y0: 0.49036805854498494, y1: 0.2902496771416272 }, 
+
+{ x0: "2026-02-19T13:22:00", x1: "2026-02-19T13:22:18", y0: 0.2902496771416272, y1: 0.28361314392308795 }, 
+
+{ x0: "2026-02-19T18:25:00", x1: "2026-02-19T19:19:06", y0: 1, y1: 1 }, 
+
+{ x0: "2026-02-19T19:19:06", x1: "2026-02-19T19:19:12", y0: 1, y1: 1 }, 
+
+{ x0: "2026-02-19T19:19:12", x1: "2026-02-19T19:24:48", y0: 1, y1: 0.988873561549352 }, 
+
+{ x0: "2026-02-19T19:24:48", x1: "2026-02-19T19:32:14", y0: 0.988873561549352, y1: 0.9639343667186989 }, 
+
+{ x0: "2026-02-19T21:21:47", x1: "2026-02-19T22:22:00", y0: 0.9566014448034269, y1: 0.7301884052709914 }, 
+
+{ x0: "2026-02-19T22:22:00", x1: "2026-02-19T22:23:00", y0: 0.7301884052709914, y1: 0.7270301666243148 }, 
+
+{ x0: "2026-02-20T08:56:15", x1: "2026-02-20T09:57:00", y0: 1, y1: 0.6562853081605132 }, 
+
+{ x0: "2026-02-20T09:57:00", x1: "2026-02-20T09:57:17", y0: 0.6562853081605132, y1: 0.6543900572219995 }, 
+
+{ x0: "2026-02-20T09:57:17", x1: "2026-02-20T10:56:53", y0: 0.6543900572219995, y1: 0.31277107555490763 }, 
+
+{ x0: "2026-02-20T10:56:53", x1: "2026-02-20T10:58:00", y0: 0.31277107555490763, y1: 0.3058278966359296 }, 
+
+{ x0: "2026-02-20T14:10:36", x1: "2026-02-20T14:57:43", y0: 1, y1: 1 }, 
+
+{ x0: "2026-02-20T14:57:43", x1: "2026-02-20T14:57:45", y0: 1, y1: 1 }, 
+
+{ x0: "2026-02-20T14:57:45", x1: "2026-02-20T15:00:38", y0: 1, y1: 0.9848974992730445 }, 
+
+{ x0: "2026-02-20T15:00:38", x1: "2026-02-20T16:01:00", y0: 0.9848974992730445, y1: 0.6962598138993894 }, 
+
+{ x0: "2026-02-20T16:01:00", x1: "2026-02-20T16:01:06", y0: 0.6962598138993894, y1: 0.694587816225647 }, 
+
+{ x0: "2026-02-20T16:01:06", x1: "2026-02-20T17:02:00", y0: 0.694587816225647, y1: 0.23320732771154406 }, 
+
+{ x0: "2026-02-20T17:02:00", x1: "2026-02-20T17:03:00", y0: 0.23320732771154406, y1: 0.22837307356789765 }, 
+
+{ x0: "2026-02-20T17:03:00", x1: "2026-02-20T17:46:07", y0: 0.22837307356789765, y1: 0.054158185519046234 }, 
+
+{ x0: "2026-02-20T17:46:07", x1: "2026-02-20T17:46:07", y0: 0.054158185519046234, y1: 0.054158185519046234 }, 
+
+{ x0: "2026-02-20T21:30:03", x1: "2026-02-20T21:38:05", y0: 0.10371295310147269, y1: 0.21422013294649086 }, 
+
+{ x0: "2026-02-20T22:30:00", x1: "2026-02-20T22:51:22", y0: 0.802343090087774, y1: 0.9037239707664623 }, 
+
+{ x0: "2026-02-20T22:51:22", x1: "2026-02-20T23:30:00", y0: 0.9037239707664623, y1: 0.55885269381909 }, 
+
+{ x0: "2026-02-20T23:30:00", x1: "2026-02-20T23:30:53", y0: 0.55885269381909, y1: 0.5512137794263469 }, 
+
+{ x0: "2026-02-21T13:46:51", x1: "2026-02-21T13:46:54", y0: 1, y1: 1 }, 
+
+{ x0: "2026-02-21T13:46:54", x1: "2026-02-21T14:39:00", y0: 1, y1: 0.6089526082255118 }, 
+
+{ x0: "2026-02-21T14:39:00", x1: "2026-02-21T14:39:47", y0: 0.6089526082255118, y1: 0.6048696819419068 }, 
+
+{ x0: "2026-02-21T14:39:47", x1: "2026-02-21T15:25:19", y0: 0.6048696819419068, y1: 0.41429583504232076 }, 
+
+{ x0: "2026-02-21T16:11:08", x1: "2026-02-21T17:11:59", y0: 0.4199371773116222, y1: 0.08486478680001444 }, 
+
+{ x0: "2026-02-21T17:11:59", x1: "2026-02-21T17:13:00", y0: 0.08486478680001444, y1: 0.07944903780192801 }, 
+
+{ x0: "2026-02-21T17:13:00", x1: "2026-02-21T17:17:51", y0: 0.07944903780192801, y1: 0.052966025201285336 }, 
+
+{ x0: "2026-02-21T17:17:51", x1: "2026-02-21T17:17:51", y0: 0.052966025201285336, y1: 0.052966025201285336 }, 
+
+{ x0: "2026-02-21T20:36:32", x1: "2026-02-21T21:08:10", y0: 1, y1: 1 }, 
+
+{ x0: "2026-02-21T21:08:10", x1: "2026-02-21T21:15:00", y0: 1, y1: 0.9696367058489292 }, 
+
+{ x0: "2026-02-21T21:15:00", x1: "2026-02-21T21:15:01", y0: 0.9696367058489292, y1: 0.9645228878866437 }, 
+
+{ x0: "2026-02-21T21:15:01", x1: "2026-02-21T22:16:00", y0: 0.9645228878866437, y1: 0.5381405589687134 }, 
+
+{ x0: "2026-02-21T22:16:00", x1: "2026-02-21T22:16:02", y0: 0.5381405589687134, y1: 0.5276820909833446 }, 
+
+{ x0: "2026-02-22T11:31:26", x1: "2026-02-22T12:04:41", y0: 1, y1: 1 }, 
+
+{ x0: "2026-02-22T12:04:41", x1: "2026-02-22T12:04:47", y0: 1, y1: 1 }, 
+
+{ x0: "2026-02-22T12:04:47", x1: "2026-02-22T12:06:29", y0: 1, y1: 0.9879177781264711 }, 
+
+{ x0: "2026-02-22T12:06:29", x1: "2026-02-22T12:07:12", y0: 0.9879177781264711, y1: 0.9822863817842634 }, 
+
+{ x0: "2026-02-22T12:07:12", x1: "2026-02-22T13:08:00", y0: 0.9822863817842634, y1: 0.6202207228411528 }, 
+
+{ x0: "2026-02-22T13:08:00", x1: "2026-02-22T13:08:12", y0: 0.6202207228411528, y1: 0.6133689000470736 }, 
+
+{ x0: "2026-02-22T14:09:49", x1: "2026-02-22T14:22:01", y0: 0.2879683386509057, y1: 0.4347507714838642 }, 
+
+{ x0: "2026-02-22T18:13:00", x1: "2026-02-22T18:15:36", y0: 1, y1: 1 }, 
+
+{ x0: "2026-02-22T18:15:36", x1: "2026-02-22T18:15:42", y0: 1, y1: 1 }, 
+
+{ x0: "2026-02-22T18:15:42", x1: "2026-02-22T19:12:00", y0: 1, y1: 0.7566195518002747 }, 
+
+{ x0: "2026-02-22T19:12:00", x1: "2026-02-22T19:12:15", y0: 0.7566195518002747, y1: 0.7530207409725482 }, 
+
+{ x0: "2026-02-22T19:12:15", x1: "2026-02-22T20:13:00", y0: 0.7530207409725482, y1: 0.48514403936090683 }, 
+
+{ x0: "2026-02-22T20:13:00", x1: "2026-02-22T20:13:24", y0: 0.48514403936090683, y1: 0.4815278429736261 }, 
+
+{ x0: "2026-02-22T20:13:24", x1: "2026-02-22T21:13:24", y0: 0.4815278429736261, y1: 0.201203080721153 }, 
+
+{ x0: "2026-02-22T21:13:24", x1: "2026-02-22T21:14:33", y0: 0.201203080721153, y1: 0.19497905040073715 }, 
+
+{ x0: "2026-02-22T21:14:33", x1: "2026-02-22T21:45:26", y0: 0.19497905040073715, y1: 0.05220883534136546 }, 
+
+{ x0: "2026-02-22T21:45:26", x1: "2026-02-22T21:45:26", y0: 0.05220883534136546, y1: 0.05220883534136546 }, 
+
+{ x0: "2026-02-22T23:20:33", x1: "2026-02-22T23:32:35", y0: 0.7326254826254827, y1: 0.8168436293436293 }, 
+
+{ x0: "2026-02-22T23:32:35", x1: "2026-02-23T00:20:00", y0: 0.8168436293436293, y1: 0.4005619139547711 }, 
+
+{ x0: "2026-02-23T00:20:00", x1: "2026-02-23T00:21:00", y0: 0.4005619139547711, y1: 0.3961838113623828 }, 
+
+{ x0: "2026-02-23T00:21:00", x1: "2026-02-23T00:21:13", y0: 0.3961838113623828, y1: 0.39318463872035303 }, 
+
+{ x0: "2026-02-23T13:08:44", x1: "2026-02-23T13:11:18", y0: 0.9258651737479273, y1: 0.9324442384153191 }, 
+
+{ x0: "2026-02-23T13:11:18", x1: "2026-02-23T14:08:00", y0: 0.9324442384153191, y1: 0.5965731809510225 }, 
+
+{ x0: "2026-02-23T14:08:00", x1: "2026-02-23T14:08:24", y0: 0.5965731809510225, y1: 0.5928646566940646 }, 
+
+{ x0: "2026-02-23T14:08:24", x1: "2026-02-23T15:09:00", y0: 0.5928646566940646, y1: 0.1575409631465402 }, 
+
+{ x0: "2026-02-23T15:09:00", x1: "2026-02-23T15:09:24", y0: 0.1575409631465402, y1: 0.15279833116408437 }, 
+
+{ x0: "2026-02-23T15:09:24", x1: "2026-02-23T15:24:46", y0: 0.15279833116408437, y1: 0.054772050564301886 }, 
+
+{ x0: "2026-02-23T15:24:46", x1: "2026-02-23T15:24:46", y0: 0.054772050564301886, y1: 0.054772050564301886 }, 
+
+{ x0: "2026-02-23T17:12:00", x1: "2026-02-23T17:31:23", y0: 0.8947331237415663, y1: 0.9510403052032922 }, 
+
+{ x0: "2026-02-23T17:31:32", x1: "2026-02-23T17:31:38", y0: 0.9504221272386873, y1: 0.9502278427355258 }, 
+
+{ x0: "2026-02-23T17:31:38", x1: "2026-02-23T18:12:00", y0: 0.9502278427355258, y1: 0.6738139814193366 }, 
+
+{ x0: "2026-02-23T18:12:00", x1: "2026-02-23T18:13:00", y0: 0.6738139814193366, y1: 0.668303366420573 }, 
+
+{ x0: "2026-02-23T18:13:00", x1: "2026-02-23T19:12:00", y0: 0.668303366420573, y1: 0.29805009007736055 }, 
+
+{ x0: "2026-02-23T19:12:00", x1: "2026-02-23T19:12:21", y0: 0.29805009007736055, y1: 0.29335193754636335 }, 
+
+{ x0: "2026-02-23T21:30:22", x1: "2026-02-23T21:32:25", y0: 0.9897933957266467, y1: 0.9897933957266467 }, 
+
+{ x0: "2026-02-23T21:32:25", x1: "2026-02-23T22:13:00", y0: 0.9897933957266467, y1: 0.7911354405791983 }, 
+
+{ x0: "2026-02-23T22:13:00", x1: "2026-02-23T22:13:11", y0: 0.7911354405791983, y1: 0.784407557831538 }, 
+
+{ x0: "2026-02-23T22:13:11", x1: "2026-02-23T23:14:00", y0: 0.784407557831538, y1: 0.35896168108776266 }, 
+
+{ x0: "2026-02-23T23:14:00", x1: "2026-02-23T23:15:00", y0: 0.35896168108776266, y1: 0.3556948613808935 }, 
+
+{ x0: "2026-02-23T23:15:00", x1: "2026-02-23T23:20:10", y0: 0.3556948613808935, y1: 0.3238742715874978 }, 
+
+{ x0: "2026-02-24T11:38:00", x1: "2026-02-24T12:18:21", y0: 0.9092614219485438, y1: 0.9818098170364865 }, 
+
+{ x0: "2026-02-24T12:18:21", x1: "2026-02-24T12:38:00", y0: 0.9818098170364865, y1: 0.8669533213009166 }, 
+
+{ x0: "2026-02-24T12:38:00", x1: "2026-02-24T12:38:28", y0: 0.8669533213009166, y1: 0.8632728173549917 }, 
+
+{ x0: "2026-02-24T12:38:28", x1: "2026-02-24T13:38:00", y0: 0.8632728173549917, y1: 0.23523374739002725 }, 
+
+{ x0: "2026-02-24T14:17:08", x1: "2026-02-24T14:57:15", y0: 0.34662207594578337, y1: 0.054570548890540395 }, 
+
+{ x0: "2026-02-24T14:57:15", x1: "2026-02-24T14:57:15", y0: 0.054570548890540395, y1: 0.054570548890540395 }, 
+
+{ x0: "2026-02-24T18:08:56", x1: "2026-02-24T18:08:57", y0: 1, y1: 1 }, 
+
+{ x0: "2026-02-24T21:36:14", x1: "2026-02-24T22:37:00", y0: 1, y1: 0.7389334262809342 }, 
+
+{ x0: "2026-02-24T22:37:00", x1: "2026-02-24T22:37:40", y0: 0.7389334262809342, y1: 0.7337051237364935 }, 
+
+{ x0: "2026-02-25T11:01:05", x1: "2026-02-25T12:01:54", y0: 0.976795387034772, y1: 0.5130176480866678 }, 
+
+{ x0: "2026-02-25T12:01:54", x1: "2026-02-25T12:02:00", y0: 0.5130176480866678, y1: 0.5122138738423904 }, 
+
+{ x0: "2026-02-25T12:02:00", x1: "2026-02-25T13:02:00", y0: 0.5122138738423904, y1: 0.11887122138738423 }, 
+
+{ x0: "2026-02-25T13:02:00", x1: "2026-02-25T13:02:54", y0: 0.11887122138738423, y1: 0.11301764808666784 }, 
+
+{ x0: "2026-02-25T15:15:57", x1: "2026-02-25T15:25:38", y0: 0.989894398209665, y1: 0.989894398209665 }, 
+
+{ x0: "2026-02-25T15:25:38", x1: "2026-02-25T15:25:45", y0: 0.989894398209665, y1: 0.989890332849422 }, 
+
+{ x0: "2026-02-25T15:25:45", x1: "2026-02-25T16:03:55", y0: 0.989890332849422, y1: 0.8147377258496143 }, 
+
+{ x0: "2026-02-25T16:03:55", x1: "2026-02-25T16:05:00", y0: 0.8147377258496143, y1: 0.8098927815577283 }, 
+
+{ x0: "2026-02-25T16:05:00", x1: "2026-02-25T17:04:00", y0: 0.8098927815577283, y1: 0.28525702691830057 }, 
+
+{ x0: "2026-02-25T17:04:00", x1: "2026-02-25T17:04:29", y0: 0.28525702691830057, y1: 0.2779808650936631 }, 
+
+{ x0: "2026-02-25T17:04:29", x1: "2026-02-25T17:26:32", y0: 0.2779808650936631, y1: 0.0507057527154426 }, 
+
+{ x0: "2026-02-25T17:26:32", x1: "2026-02-25T17:26:32", y0: 0.0507057527154426, y1: 0.0507057527154426 }, 
+
+{ x0: "2026-02-25T19:06:52", x1: "2026-02-25T19:06:56", y0: 0.9256159191408717, y1: 0.9256159191408717 }, 
+
+{ x0: "2026-02-25T19:10:40", x1: "2026-02-25T19:45:49", y0: 0.91973748859409, y1: 0.6220081420649961 }, 
+
+{ x0: "2026-02-25T23:15:43", x1: "2026-02-25T23:19:29", y0: 0.9898395145944782, y1: 0.9898395145944782 }, 
+
+{ x0: "2026-02-25T23:19:29", x1: "2026-02-25T23:19:35", y0: 0.9898395145944782, y1: 0.9898687955322463 }, 
+
+{ x0: "2026-02-25T23:19:35", x1: "2026-02-25T23:56:00", y0: 0.9898687955322463, y1: 0.8085631947303417 }, 
+
+{ x0: "2026-02-25T23:56:00", x1: "2026-02-25T23:56:47", y0: 0.8085631947303417, y1: 0.8042314783324682 }, 
+
+{ x0: "2026-02-25T23:56:47", x1: "2026-02-26T00:29:00", y0: 0.8042314783324682, y1: 0.6433851826659745 }, 
+
+{ x0: "2026-02-26T07:43:49", x1: "2026-02-26T08:43:54", y0: 0.622813517845141, y1: 0.34315060230582317 }, 
+
+{ x0: "2026-02-26T08:43:54", x1: "2026-02-26T08:45:00", y0: 0.34315060230582317, y1: 0.3381701621658883 }, 
+
+{ x0: "2026-02-26T08:45:00", x1: "2026-02-26T08:45:57", y0: 0.3381701621658883, y1: 0.33339652230858046 }, 
+
+{ x0: "2026-02-26T08:45:57", x1: "2026-02-26T08:47:00", y0: 0.33339652230858046, y1: 0.3290192496596412 }, 
+
+{ x0: "2026-02-26T08:47:00", x1: "2026-02-26T08:48:00", y0: 0.3290192496596412, y1: 0.3250383442190704 }, 
+
+{ x0: "2026-02-26T08:48:00", x1: "2026-02-26T08:48:08", y0: 0.3250383442190704, y1: 0.3242456098023334 }, 
+
+{ x0: "2026-02-26T08:48:08", x1: "2026-02-26T08:49:00", y0: 0.3242456098023334, y1: 0.32066107157013113 }, 
+
+{ x0: "2026-02-26T08:49:00", x1: "2026-02-26T08:50:00", y0: 0.32066107157013113, y1: 0.31588743171282335 }, 
+
+{ x0: "2026-02-26T08:50:00", x1: "2026-02-26T08:50:46", y0: 0.31588743171282335, y1: 0.3126992606889896 }, 
+
+{ x0: "2026-02-26T08:50:46", x1: "2026-02-26T08:51:00", y0: 0.3126992606889896, y1: 0.3115101590638841 }, 
+
+{ x0: "2026-02-26T08:51:00", x1: "2026-02-26T08:52:00", y0: 0.3115101590638841, y1: 0.3075292536233133 }, 
+
+{ x0: "2026-02-26T08:52:00", x1: "2026-02-26T08:52:46", y0: 0.3075292536233133, y1: 0.30373791510848397 }, 
+
+{ x0: "2026-02-26T08:52:46", x1: "2026-02-26T08:53:00", y0: 0.30373791510848397, y1: 0.3029451806917469 }, 
+
+{ x0: "2026-02-26T08:53:00", x1: "2026-02-26T08:54:00", y0: 0.3029451806917469, y1: 0.2983611077601806 }, 
+
+{ x0: "2026-02-26T08:54:00", x1: "2026-02-26T08:54:46", y0: 0.2983611077601806, y1: 0.2949833698106054 }, 
+
+{ x0: "2026-02-26T08:54:46", x1: "2026-02-26T08:55:00", y0: 0.2949833698106054, y1: 0.29419063539386836 }, 
+
+{ x0: "2026-02-26T08:55:00", x1: "2026-02-26T08:56:00", y0: 0.29419063539386836, y1: 0.2898133627449291 }, 
+
+{ x0: "2026-02-26T08:56:00", x1: "2026-02-26T08:57:00", y0: 0.2898133627449291, y1: 0.2850397228876213 }, 
+
+{ x0: "2026-02-26T08:57:00", x1: "2026-02-26T08:57:05", y0: 0.2850397228876213, y1: 0.28464335567925275 }, 
+
+{ x0: "2026-02-26T08:57:05", x1: "2026-02-26T08:58:00", y0: 0.28464335567925275, y1: 0.2802488496734279 }, 
+
+{ x0: "2026-02-26T08:58:00", x1: "2026-02-26T08:59:00", y0: 0.2802488496734279, y1: 0.2762679442328571 }, 
+
+{ x0: "2026-02-26T08:59:00", x1: "2026-02-26T08:59:58", y0: 0.2762679442328571, y1: 0.27189067158391783 }, 
+
+{ x0: "2026-02-26T08:59:58", x1: "2026-02-26T09:01:00", y0: 0.27189067158391783, y1: 0.26751339893497855 }, 
+
+{ x0: "2026-02-26T09:01:00", x1: "2026-02-26T09:01:58", y0: 0.26751339893497855, y1: 0.2631361262860393 }, 
+
+{ x0: "2026-02-26T09:01:58", x1: "2026-02-26T09:03:00", y0: 0.2631361262860393, y1: 0.2591552208454685 }, 
+
+{ x0: "2026-02-26T09:03:00", x1: "2026-02-26T09:03:58", y0: 0.2591552208454685, y1: 0.2547779481965292 }, 
+
+{ x0: "2026-02-26T09:03:58", x1: "2026-02-26T09:05:00", y0: 0.2547779481965292, y1: 0.25040067554758993 }, 
+
+{ x0: "2026-02-26T09:05:00", x1: "2026-02-26T09:06:00", y0: 0.25040067554758993, y1: 0.24602340289865063 }, 
+
+{ x0: "2026-02-26T09:06:00", x1: "2026-02-26T09:06:46", y0: 0.24602340289865063, y1: 0.24304203215744394 }, 
+
+{ x0: "2026-02-26T09:06:46", x1: "2026-02-26T09:07:00", y0: 0.24304203215744394, y1: 0.24143932996708428 }, 
+
+{ x0: "2026-02-26T09:07:00", x1: "2026-02-26T09:07:46", y0: 0.24143932996708428, y1: 0.228910679511262 }, 
+
+{ x0: "2026-02-26T09:07:46", x1: "2026-02-26T09:08:00", y0: 0.228910679511262, y1: 0.22611887569579678 }, 
+
+{ x0: "2026-02-26T09:08:00", x1: "2026-02-26T09:08:08", y0: 0.22611887569579678, y1: 0.22313750495459011 }, 
+
+{ x0: "2026-02-26T09:08:08", x1: "2026-02-26T09:08:58", y0: 0.22313750495459011, y1: 0.1914798283557654 }, 
+
+{ x0: "2026-02-26T09:08:58", x1: "2026-02-26T09:09:31", y0: 0.1914798283557654, y1: 0.17874437761731607 }, 
+
+{ x0: "2026-02-26T09:09:31", x1: "2026-02-26T09:10:00", y0: 0.17874437761731607, y1: 0.16878349733744635 }, 
+
+{ x0: "2026-02-26T09:10:00", x1: "2026-02-26T09:10:31", y0: 0.16878349733744635, y1: 0.16461302497113411 }, 
+
+{ x0: "2026-02-26T09:10:31", x1: "2026-02-26T09:11:00", y0: 0.16461302497113411, y1: 0.16202802143829598 }, 
+
+{ x0: "2026-02-26T09:11:00", x1: "2026-02-26T09:12:00", y0: 0.16202802143829598, y1: 0.1556516793906285 }, 
+
+{ x0: "2026-02-26T09:12:00", x1: "2026-02-26T09:12:08", y0: 0.1556516793906285, y1: 0.1546521446912644 }, 
+
+{ x0: "2026-02-26T09:12:08", x1: "2026-02-26T09:13:00", y0: 0.1546521446912644, y1: 0.15027487204232512 }, 
+
+{ x0: "2026-02-26T09:13:00", x1: "2026-02-26T09:14:00", y0: 0.15027487204232512, y1: 0.1451048649766488 }, 
+
+{ x0: "2026-02-26T09:14:00", x1: "2026-02-26T09:14:08", y0: 0.1451048649766488, y1: 0.1441053302772847 }, 
+
+{ x0: "2026-02-26T09:14:08", x1: "2026-02-26T09:15:00", y0: 0.1441053302772847, y1: 0.1399348579109725 }, 
+
+{ x0: "2026-02-26T09:15:00", x1: "2026-02-26T09:15:58", y0: 0.1399348579109725, y1: 0.13395488307167352 }, 
+
+{ x0: "2026-02-26T09:15:58", x1: "2026-02-26T09:17:00", y0: 0.13395488307167352, y1: 0.12997397763110277 }, 
+
+{ x0: "2026-02-26T09:17:00", x1: "2026-02-26T09:18:00", y0: 0.12997397763110277, y1: 0.12638943939890051 }, 
+
+{ x0: "2026-02-26T09:18:00", x1: "2026-02-26T09:18:31", y0: 0.12638943939890051, y1: 0.12440760335705791 }, 
+
+{ x0: "2026-02-26T09:18:31", x1: "2026-02-26T09:19:00", y0: 0.12440760335705791, y1: 0.12280490116669826 }, 
+
+{ x0: "2026-02-26T09:19:00", x1: "2026-02-26T09:20:00", y0: 0.12280490116669826, y1: 0.119220362934496 }, 
+
+{ x0: "2026-02-26T09:20:00", x1: "2026-02-26T09:21:00", y0: 0.119220362934496, y1: 0.11565305805917934 }, 
+
+{ x0: "2026-02-26T09:21:00", x1: "2026-02-26T09:21:08", y0: 0.11565305805917934, y1: 0.11484309028555672 }, 
+
+{ x0: "2026-02-26T09:21:08", x1: "2026-02-26T09:22:00", y0: 0.11484309028555672, y1: 0.11186171954435005 }, 
+
+{ x0: "2026-02-26T09:22:00", x1: "2026-02-26T09:23:00", y0: 0.11186171954435005, y1: 0.1082771813121478 }, 
+
+{ x0: "2026-02-26T09:23:00", x1: "2026-02-26T09:23:53", y0: 0.1082771813121478, y1: 0.10469264307994554 }, 
+
+{ x0: "2026-02-26T09:23:53", x1: "2026-02-26T09:25:00", y0: 0.10469264307994554, y1: 0.10091853792200182 }, 
+
+{ x0: "2026-02-26T09:25:00", x1: "2026-02-26T09:26:00", y0: 0.10091853792200182, y1: 0.09654126527306254 }, 
+
+
+
+    ];
+
+    
+
+    function main() {
+
+        Timegraph.draw({
+
+            element: "drain-graph",
+
+            data: drainGraphData,
+
+            startTime: "2026-02-19T09:26:17",
+
+            endTime: "2026-02-26T09:26:18",
+
+        });
+
+    }
+
+
+
+    if (window.addEventListener != null) {
+
+        window.addEventListener("load", main, false);
+
+
+
+    } else if (window.attachEvent != null) {
+
+        window.attachEvent("onload", main);
+
+    }
+
+    </script></head><body><h1>
+
+      Battery report
+
+    </h1><table style="margin-bottom: 6em;"><col/><tr><td class="label">
+
+          COMPUTER NAME
+
+        </td><td>MASZEHADA</td></tr><tr><td class="label">
+
+          SYSTEM PRODUCT NAME
+
+        </td><td>ADVAN 1701</td></tr><tr><td class="label">
+
+          BIOS
+
+        </td><td>6.09 10/12/2024</td></tr><tr><td class="label">
+
+          OS BUILD
+
+        </td><td>26100.1.amd64fre.ge_release.240331-1435</td></tr><tr><td class="label">
+
+          PLATFORM ROLE
+
+        </td><td>Mobile</td></tr><tr><td class="label">
+
+          CONNECTED STANDBY
+
+        </td><td>Not supported</td></tr><tr><td class="label">
+
+          REPORT TIME
+
+        </td><td class="dateTime"><span class="date">2026-02-26 </span><span class="time">09:26:18</span></td></tr></table><h2>
+
+      Installed batteries
+
+    </h2><div class="explanation">
+
+      Information about each currently installed battery
+
+    </div><table><colgroup><col style="width: 15em;"/><col style="width: 14em;"/></colgroup><thead><tr><td> </td><td>
+
+                  BATTERY
+
+                  1</td></tr></thead><tr><td><span class="label">NAME</span></td><td>SR Real Battery</td></tr><tr><td><span class="label">MANUFACTURER</span></td><td>Standard</td></tr><tr><td><span class="label">SERIAL NUMBER</span></td><td>123456789</td></tr><tr><td><span class="label">CHEMISTRY</span></td><td>LION</td></tr><tr><td><span class="label">DESIGN CAPACITY</span></td><td>58.004 mWh
+
+      </td></tr><tr style="height:0.4em;"></tr><tr><td><span class="label">FULL CHARGE CAPACITY</span></td><td>58.027 mWh
+
+      </td></tr><tr><td><span class="label">CYCLE COUNT</span></td><td>
+
+        -
+
+      </td></tr></table><h2>Recent usage</h2><div class="explanation">
+
+      Power states over the last 7 days
+
+    </div><table><colgroup><col/><col class="col2"/><col style="width: 4.2em;"/><col class="percent"/><col style="width: 11em;"/></colgroup><thead><tr><th>
+
+            START TIME
+
+          </th><th class="centered">
+
+            STATE
+
+          </th><th class="centered">
+
+            SOURCE
+
+          </th><th colspan="2" class="centered">
+
+            CAPACITY REMAINING
+
+          </th></tr></thead><tr class="even dc 1"><td class="dateTime"><span class="date">2026-02-19 </span><span class="time">10:20:09</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">89 %
+
+        </td><td class="mw">49.769 mWh
+
+        </td></tr><tr class="odd suspend 2"><td class="dateTime"><span class="date"> </span><span class="time">10:31:26</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">86 %
+
+        </td><td class="mw">48.036 mWh
+
+        </td></tr><tr class="even dc 3"><td class="dateTime"><span class="date"> </span><span class="time">10:34:49</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">86 %
+
+        </td><td class="mw">47.886 mWh
+
+        </td></tr><tr class="odd suspend 4"><td class="dateTime"><span class="date"> </span><span class="time">12:21:44</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">55 %
+
+        </td><td class="mw">30.469 mWh
+
+        </td></tr><tr class="even dc 5"><td class="dateTime"><span class="date"> </span><span class="time">12:29:45</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">54 %
+
+        </td><td class="mw">30.307 mWh
+
+        </td></tr><tr class="odd  6"><td class="dateTime"><span class="date"> </span><span class="time">13:35:29</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">10 %
+
+        </td><td class="mw">5.810 mWh
+
+        </td></tr><tr class="even dc 7"><td class="dateTime"><span class="date"> </span><span class="time">19:19:06</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">100 %
+
+        </td><td class="mw">55.232 mWh
+
+        </td></tr><tr class="odd suspend 8"><td class="dateTime"><span class="date"> </span><span class="time">19:32:14</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">96 %
+
+        </td><td class="mw">53.107 mWh
+
+        </td></tr><tr class="even dc 9"><td class="dateTime"><span class="date"> </span><span class="time">21:21:47</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">96 %
+
+        </td><td class="mw">52.703 mWh
+
+        </td></tr><tr class="odd  10"><td class="dateTime"><span class="date"> </span><span class="time">22:35:17</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">64 %
+
+        </td><td class="mw">35.412 mWh
+
+        </td></tr><tr class="even suspend 11"><td class="dateTime"><span class="date">2026-02-20 </span><span class="time">01:23:00</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">100 %
+
+        </td><td class="mw">54.816 mWh
+
+        </td></tr><tr class="odd dc 12"><td class="dateTime"><span class="date"> </span><span class="time">08:56:15</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">100 %
+
+        </td><td class="mw">54.874 mWh
+
+        </td></tr><tr class="even  13"><td class="dateTime"><span class="date"> </span><span class="time">11:29:19</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">9 %
+
+        </td><td class="mw">5.151 mWh
+
+        </td></tr><tr class="odd dc 14"><td class="dateTime"><span class="date"> </span><span class="time">14:57:43</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">100 %
+
+        </td><td class="mw">54.724 mWh
+
+        </td></tr><tr class="even suspend 15"><td class="dateTime"><span class="date"> </span><span class="time">17:46:07</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">5 %
+
+        </td><td class="mw">2.980 mWh
+
+        </td></tr><tr class="odd dc 16"><td class="dateTime"><span class="date"> </span><span class="time">21:28:51</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">9 %
+
+        </td><td class="mw">4.816 mWh
+
+        </td></tr><tr class="even suspend 17"><td class="dateTime"><span class="date"> </span><span class="time">21:28:51</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">9 %
+
+        </td><td class="mw">4.816 mWh
+
+        </td></tr><tr class="odd  18"><td class="dateTime"><span class="date"> </span><span class="time">21:29:28</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">9 %
+
+        </td><td class="mw">5.151 mWh
+
+        </td></tr><tr class="even dc 19"><td class="dateTime"><span class="date"> </span><span class="time">21:38:05</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">21 %
+
+        </td><td class="mw">11.666 mWh
+
+        </td></tr><tr class="odd  20"><td class="dateTime"><span class="date"> </span><span class="time">21:38:13</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">21 %
+
+        </td><td class="mw">11.631 mWh
+
+        </td></tr><tr class="even dc 21"><td class="dateTime"><span class="date"> </span><span class="time">22:51:22</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">90 %
+
+        </td><td class="mw">49.215 mWh
+
+        </td></tr><tr class="odd  22"><td class="dateTime"><span class="date">2026-02-21 </span><span class="time">00:20:06</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">10 %
+
+        </td><td class="mw">5.625 mWh
+
+        </td></tr><tr class="even suspend 23"><td class="dateTime"><span class="date"> </span><span class="time">00:33:10</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">25 %
+
+        </td><td class="mw">13.444 mWh
+
+        </td></tr><tr class="odd  24"><td class="dateTime"><span class="date"> </span><span class="time">10:38:24</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">100 %
+
+        </td><td class="mw">53.604 mWh
+
+        </td></tr><tr class="even dc 25"><td class="dateTime"><span class="date"> </span><span class="time">13:46:54</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">100 %
+
+        </td><td class="mw">53.638 mWh
+
+        </td></tr><tr class="odd suspend 26"><td class="dateTime"><span class="date"> </span><span class="time">15:25:19</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">41 %
+
+        </td><td class="mw">22.222 mWh
+
+        </td></tr><tr class="even dc 27"><td class="dateTime"><span class="date"> </span><span class="time">16:11:08</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">42 %
+
+        </td><td class="mw">23.262 mWh
+
+        </td></tr><tr class="odd suspend 28"><td class="dateTime"><span class="date"> </span><span class="time">17:17:51</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">5 %
+
+        </td><td class="mw">2.934 mWh
+
+        </td></tr><tr class="even dc 29"><td class="dateTime"><span class="date"> </span><span class="time">17:53:00</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">5 %
+
+        </td><td class="mw">2.841 mWh
+
+        </td></tr><tr class="odd suspend 30"><td class="dateTime"><span class="date"> </span><span class="time">17:53:00</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">5 %
+
+        </td><td class="mw">2.841 mWh
+
+        </td></tr><tr class="even  31"><td class="dateTime"><span class="date"> </span><span class="time">17:53:36</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">6 %
+
+        </td><td class="mw">3.107 mWh
+
+        </td></tr><tr class="odd dc 32"><td class="dateTime"><span class="date"> </span><span class="time">21:08:10</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">100 %
+
+        </td><td class="mw">56.318 mWh
+
+        </td></tr><tr class="even  33"><td class="dateTime"><span class="date"> </span><span class="time">22:49:31</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">10 %
+
+        </td><td class="mw">5.810 mWh
+
+        </td></tr><tr class="odd suspend 34"><td class="dateTime"><span class="date"> </span><span class="time">23:24:01</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">44 %
+
+        </td><td class="mw">24.913 mWh
+
+        </td></tr><tr class="even dc 35"><td class="dateTime"><span class="date">2026-02-22 </span><span class="time">09:04:58</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">49 %
+
+        </td><td class="mw">27.385 mWh
+
+        </td></tr><tr class="odd  36"><td class="dateTime"><span class="date"> </span><span class="time">09:07:45</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">45 %
+
+        </td><td class="mw">25.468 mWh
+
+        </td></tr><tr class="even dc 37"><td class="dateTime"><span class="date"> </span><span class="time">12:04:41</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">100 %
+
+        </td><td class="mw">55.810 mWh
+
+        </td></tr><tr class="odd  38"><td class="dateTime"><span class="date"> </span><span class="time">13:53:08</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">10 %
+
+        </td><td class="mw">5.914 mWh
+
+        </td></tr><tr class="even dc 39"><td class="dateTime"><span class="date"> </span><span class="time">14:22:01</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">43 %
+
+        </td><td class="mw">24.936 mWh
+
+        </td></tr><tr class="odd  40"><td class="dateTime"><span class="date"> </span><span class="time">15:04:34</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">10 %
+
+        </td><td class="mw">5.636 mWh
+
+        </td></tr><tr class="even dc 41"><td class="dateTime"><span class="date"> </span><span class="time">18:15:36</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">100 %
+
+        </td><td class="mw">57.346 mWh
+
+        </td></tr><tr class="odd suspend 42"><td class="dateTime"><span class="date"> </span><span class="time">21:45:26</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">5 %
+
+        </td><td class="mw">3.003 mWh
+
+        </td></tr><tr class="even dc 43"><td class="dateTime"><span class="date"> </span><span class="time">22:19:31</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">5 %
+
+        </td><td class="mw">2.622 mWh
+
+        </td></tr><tr class="odd suspend 44"><td class="dateTime"><span class="date"> </span><span class="time">22:19:31</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">5 %
+
+        </td><td class="mw">2.622 mWh
+
+        </td></tr><tr class="even  45"><td class="dateTime"><span class="date"> </span><span class="time">22:20:09</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">5 %
+
+        </td><td class="mw">2.853 mWh
+
+        </td></tr><tr class="odd dc 46"><td class="dateTime"><span class="date"> </span><span class="time">23:32:35</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">82 %
+
+        </td><td class="mw">47.390 mWh
+
+        </td></tr><tr class="even suspend 47"><td class="dateTime"><span class="date">2026-02-23 </span><span class="time">00:21:13</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">39 %
+
+        </td><td class="mw">22.811 mWh
+
+        </td></tr><tr class="odd dc 48"><td class="dateTime"><span class="date"> </span><span class="time">11:06:21</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">39 %
+
+        </td><td class="mw">21.772 mWh
+
+        </td></tr><tr class="even  49"><td class="dateTime"><span class="date"> </span><span class="time">11:38:40</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">10 %
+
+        </td><td class="mw">5.625 mWh
+
+        </td></tr><tr class="odd dc 50"><td class="dateTime"><span class="date"> </span><span class="time">13:11:18</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">93 %
+
+        </td><td class="mw">52.298 mWh
+
+        </td></tr><tr class="even suspend 51"><td class="dateTime"><span class="date"> </span><span class="time">15:24:46</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">5 %
+
+        </td><td class="mw">3.072 mWh
+
+        </td></tr><tr class="odd dc 52"><td class="dateTime"><span class="date"> </span><span class="time">15:47:17</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">5 %
+
+        </td><td class="mw">2.853 mWh
+
+        </td></tr><tr class="even suspend 53"><td class="dateTime"><span class="date"> </span><span class="time">15:47:17</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">5 %
+
+        </td><td class="mw">2.853 mWh
+
+        </td></tr><tr class="odd  54"><td class="dateTime"><span class="date"> </span><span class="time">15:47:56</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">5 %
+
+        </td><td class="mw">3.061 mWh
+
+        </td></tr><tr class="even dc 55"><td class="dateTime"><span class="date"> </span><span class="time">17:31:23</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">95 %
+
+        </td><td class="mw">53.846 mWh
+
+        </td></tr><tr class="odd  56"><td class="dateTime"><span class="date"> </span><span class="time">17:31:32</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">95 %
+
+        </td><td class="mw">53.811 mWh
+
+        </td></tr><tr class="even dc 57"><td class="dateTime"><span class="date"> </span><span class="time">17:31:38</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">95 %
+
+        </td><td class="mw">53.800 mWh
+
+        </td></tr><tr class="odd  58"><td class="dateTime"><span class="date"> </span><span class="time">19:27:00</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">18 %
+
+        </td><td class="mw">10.360 mWh
+
+        </td></tr><tr class="even dc 59"><td class="dateTime"><span class="date"> </span><span class="time">21:32:25</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">99 %
+
+        </td><td class="mw">56.052 mWh
+
+        </td></tr><tr class="odd suspend 60"><td class="dateTime"><span class="date"> </span><span class="time">23:20:10</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">32 %
+
+        </td><td class="mw">18.341 mWh
+
+        </td></tr><tr class="even dc 61"><td class="dateTime"><span class="date">2026-02-24 </span><span class="time">09:36:27</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">30 %
+
+        </td><td class="mw">16.771 mWh
+
+        </td></tr><tr class="odd  62"><td class="dateTime"><span class="date"> </span><span class="time">10:00:01</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">10 %
+
+        </td><td class="mw">5.521 mWh
+
+        </td></tr><tr class="even dc 63"><td class="dateTime"><span class="date"> </span><span class="time">12:18:21</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">98 %
+
+        </td><td class="mw">55.486 mWh
+
+        </td></tr><tr class="odd suspend 64"><td class="dateTime"><span class="date"> </span><span class="time">13:38:00</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">24 %
+
+        </td><td class="mw">13.294 mWh
+
+        </td></tr><tr class="even dc 65"><td class="dateTime"><span class="date"> </span><span class="time">14:17:08</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">35 %
+
+        </td><td class="mw">19.589 mWh
+
+        </td></tr><tr class="odd suspend 66"><td class="dateTime"><span class="date"> </span><span class="time">14:57:15</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">5 %
+
+        </td><td class="mw">3.084 mWh
+
+        </td></tr><tr class="even  67"><td class="dateTime"><span class="date"> </span><span class="time">14:58:51</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">6 %
+
+        </td><td class="mw">3.523 mWh
+
+        </td></tr><tr class="odd suspend 68"><td class="dateTime"><span class="date"> </span><span class="time">18:08:57</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">100 %
+
+        </td><td class="mw">57.357 mWh
+
+        </td></tr><tr class="even dc 69"><td class="dateTime"><span class="date"> </span><span class="time">21:36:14</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">100 %
+
+        </td><td class="mw">57.380 mWh
+
+        </td></tr><tr class="odd  70"><td class="dateTime"><span class="date"> </span><span class="time">23:26:33</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">10 %
+
+        </td><td class="mw">5.937 mWh
+
+        </td></tr><tr class="even suspend 71"><td class="dateTime"><span class="date">2026-02-25 </span><span class="time">01:25:00</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">98 %
+
+        </td><td class="mw">56.018 mWh
+
+        </td></tr><tr class="odd dc 72"><td class="dateTime"><span class="date"> </span><span class="time">11:01:05</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">98 %
+
+        </td><td class="mw">55.902 mWh
+
+        </td></tr><tr class="even  73"><td class="dateTime"><span class="date"> </span><span class="time">13:04:26</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">10 %
+
+        </td><td class="mw">5.937 mWh
+
+        </td></tr><tr class="odd dc 74"><td class="dateTime"><span class="date"> </span><span class="time">15:25:38</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">99 %
+
+        </td><td class="mw">56.618 mWh
+
+        </td></tr><tr class="even suspend 75"><td class="dateTime"><span class="date"> </span><span class="time">17:26:32</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">5 %
+
+        </td><td class="mw">2.899 mWh
+
+        </td></tr><tr class="odd  76"><td class="dateTime"><span class="date"> </span><span class="time">17:27:41</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">5 %
+
+        </td><td class="mw">2.749 mWh
+
+        </td></tr><tr class="even suspend 77"><td class="dateTime"><span class="date"> </span><span class="time">19:06:56</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">93 %
+
+        </td><td class="mw">52.749 mWh
+
+        </td></tr><tr class="odd dc 78"><td class="dateTime"><span class="date"> </span><span class="time">19:10:40</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">92 %
+
+        </td><td class="mw">52.414 mWh
+
+        </td></tr><tr class="even suspend 79"><td class="dateTime"><span class="date"> </span><span class="time">19:45:49</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">62 %
+
+        </td><td class="mw">35.447 mWh
+
+        </td></tr><tr class="odd dc 80"><td class="dateTime"><span class="date"> </span><span class="time">19:52:29</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">62 %
+
+        </td><td class="mw">35.089 mWh
+
+        </td></tr><tr class="even  81"><td class="dateTime"><span class="date"> </span><span class="time">20:41:05</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        AC
+
+      </td><td class="percent">10 %
+
+        </td><td class="mw">5.752 mWh
+
+        </td></tr><tr class="odd dc 82"><td class="dateTime"><span class="date"> </span><span class="time">23:19:29</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">99 %
+
+        </td><td class="mw">55.140 mWh
+
+        </td></tr><tr class="even suspend 83"><td class="dateTime"><span class="date">2026-02-26 </span><span class="time">00:29:00</span></td><td class="state">
+
+        Suspended
+
+      </td><td class="acdc"></td><td class="percent">64 %
+
+        </td><td class="mw">35.944 mWh
+
+        </td></tr><tr class="odd dc 84"><td class="dateTime"><span class="date"> </span><span class="time">07:43:49</span></td><td class="state">
+
+        Active
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">62 %
+
+        </td><td class="mw">36.140 mWh
+
+        </td></tr><tr class="even dc 85"><td class="dateTime"><span class="date"> </span><span class="time">09:26:17</span></td><td class="state">
+
+        Report generated
+
+      </td><td class="acdc">
+
+        Battery
+
+      </td><td class="percent">10 %
+
+        </td><td class="mw">5.602 mWh
+
+        </td></tr></table><h2>Battery usage</h2><div class="explanation">
+
+      Battery drains over the last 7 days
+
+    </div><canvas id="drain-graph" width="864" height="400"></canvas><table><colgroup><col/><col class="col2"/><col style="width: 10em;"/><col class="percent"/><col style="width: 11em;"/></colgroup><thead><tr><th>
+
+            START TIME
+
+          </th><th class="centered">
+
+            STATE
+
+          </th><th class="centered">
+
+            DURATION
+
+          </th><th class="centered" colspan="2">
+
+            ENERGY DRAINED
+
+          </th></tr></thead><tr class="even dc 1"><td class="dateTime"><span class="date">2026-02-19 </span><span class="time">10:20:09</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:11:17</td><td class="percent">3 %
+
+        </td><td class="mw">1.733 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 2"><td class="dateTime"><span class="date"> </span><span class="time">10:34:49</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:46:54</td><td class="percent">31 %
+
+        </td><td class="mw">17.417 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 3"><td class="dateTime"><span class="date"> </span><span class="time">12:29:45</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:05:44</td><td class="percent">44 %
+
+        </td><td class="mw">24.497 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 4"><td class="dateTime"><span class="date"> </span><span class="time">19:19:06</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:13:07</td><td class="percent">4 %
+
+        </td><td class="mw">2.125 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 5"><td class="dateTime"><span class="date"> </span><span class="time">21:21:47</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:13:29</td><td class="percent">31 %
+
+        </td><td class="mw">17.291 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 6"><td class="dateTime"><span class="date"> </span><span class="time">08:56:15</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">2:33:04</td><td class="percent">91 %
+
+        </td><td class="mw">49.723 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 7"><td class="dateTime"><span class="date"> </span><span class="time">14:57:43</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">2:48:24</td><td class="percent">95 %
+
+        </td><td class="mw">51.744 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 8"><td class="dateTime"><span class="date"> </span><span class="time">21:28:51</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:00:00</td><td class="nullValue">-</td><td class="nullValue">-</td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 9"><td class="dateTime"><span class="date"> </span><span class="time">21:38:05</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:00:07</td><td class="nullValue">-</td><td class="mw">35 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 10"><td class="dateTime"><span class="date"> </span><span class="time">22:51:22</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:28:44</td><td class="percent">80 %
+
+        </td><td class="mw">43.590 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 11"><td class="dateTime"><span class="date"> </span><span class="time">13:46:54</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:38:24</td><td class="percent">59 %
+
+        </td><td class="mw">31.416 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 12"><td class="dateTime"><span class="date"> </span><span class="time">16:11:08</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:06:42</td><td class="percent">37 %
+
+        </td><td class="mw">20.328 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 13"><td class="dateTime"><span class="date"> </span><span class="time">17:53:00</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:00:00</td><td class="nullValue">-</td><td class="nullValue">-</td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 14"><td class="dateTime"><span class="date"> </span><span class="time">21:08:10</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:41:20</td><td class="percent">90 %
+
+        </td><td class="mw">50.508 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 15"><td class="dateTime"><span class="date">2026-02-22 </span><span class="time">09:04:58</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:02:47</td><td class="percent">3 %
+
+        </td><td class="mw">1.917 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 16"><td class="dateTime"><span class="date"> </span><span class="time">12:04:41</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:48:26</td><td class="percent">89 %
+
+        </td><td class="mw">49.896 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 17"><td class="dateTime"><span class="date"> </span><span class="time">14:22:01</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:42:32</td><td class="percent">34 %
+
+        </td><td class="mw">19.300 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 18"><td class="dateTime"><span class="date"> </span><span class="time">18:15:36</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">3:29:49</td><td class="percent">95 %
+
+        </td><td class="mw">54.343 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 19"><td class="dateTime"><span class="date"> </span><span class="time">22:19:31</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:00:00</td><td class="nullValue">-</td><td class="nullValue">-</td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 20"><td class="dateTime"><span class="date"> </span><span class="time">23:32:35</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:48:38</td><td class="percent">42 %
+
+        </td><td class="mw">24.579 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 21"><td class="dateTime"><span class="date"> </span><span class="time">11:06:21</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:32:19</td><td class="percent">29 %
+
+        </td><td class="mw">16.147 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 22"><td class="dateTime"><span class="date"> </span><span class="time">13:11:18</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">2:13:27</td><td class="percent">88 %
+
+        </td><td class="mw">49.226 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 23"><td class="dateTime"><span class="date"> </span><span class="time">15:47:17</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:00:00</td><td class="nullValue">-</td><td class="nullValue">-</td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 24"><td class="dateTime"><span class="date"> </span><span class="time">17:31:23</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:00:08</td><td class="nullValue">-</td><td class="mw">35 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 25"><td class="dateTime"><span class="date"> </span><span class="time">17:31:38</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:55:21</td><td class="percent">77 %
+
+        </td><td class="mw">43.440 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 26"><td class="dateTime"><span class="date"> </span><span class="time">21:32:25</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:47:44</td><td class="percent">67 %
+
+        </td><td class="mw">37.711 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 27"><td class="dateTime"><span class="date">2026-02-24 </span><span class="time">09:36:27</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:23:33</td><td class="percent">20 %
+
+        </td><td class="mw">11.250 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 28"><td class="dateTime"><span class="date"> </span><span class="time">12:18:21</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:19:38</td><td class="percent">75 %
+
+        </td><td class="mw">42.192 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 29"><td class="dateTime"><span class="date"> </span><span class="time">14:17:08</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:40:06</td><td class="percent">29 %
+
+        </td><td class="mw">16.505 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 30"><td class="dateTime"><span class="date"> </span><span class="time">21:36:14</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:50:19</td><td class="percent">90 %
+
+        </td><td class="mw">51.443 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 31"><td class="dateTime"><span class="date"> </span><span class="time">11:01:05</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">2:03:21</td><td class="percent">87 %
+
+        </td><td class="mw">49.965 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 32"><td class="dateTime"><span class="date"> </span><span class="time">15:25:38</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">2:00:53</td><td class="percent">94 %
+
+        </td><td class="mw">53.719 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 33"><td class="dateTime"><span class="date"> </span><span class="time">19:10:40</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:35:09</td><td class="percent">30 %
+
+        </td><td class="mw">16.967 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 34"><td class="dateTime"><span class="date"> </span><span class="time">19:52:29</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">0:48:35</td><td class="percent">51 %
+
+        </td><td class="mw">29.337 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="even dc 35"><td class="dateTime"><span class="date"> </span><span class="time">23:19:29</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:09:30</td><td class="percent">34 %
+
+        </td><td class="mw">19.196 mWh
+
+        </td></tr><tr class="noncontigbreak"><td colspan="5"> </td></tr><tr class="odd dc 36"><td class="dateTime"><span class="date"> </span><span class="time">07:43:49</span></td><td class="state">
+
+        Active
+
+      </td><td class="hms">1:42:28</td><td class="percent">53 %
+
+        </td><td class="mw">30.538 mWh
+
+        </td></tr></table><h2>
+
+      Usage history
+
+    </h2><div class="explanation2">
+
+      History of system usage on AC and battery
+
+    </div><table><colgroup><col/><col class="col2"/><col style="width: 10em;"/><col style=""/><col style="width: 10em;"/><col style="width: 10em;"/><col style=""/></colgroup><thead><tr><td> </td><td colspan="2" class="centered">
+
+            BATTERY DURATION
+
+          </td><td class="colBreak"> </td><td colspan="3" class="centered">
+
+            AC DURATION
+
+          </td></tr><tr><td>
+
+            PERIOD
+
+          </td><td class="centered">
+
+            ACTIVE
+
+          </td><td class="centered">
+
+            CONNECTED STANDBY
+
+          </td><td class="colBreak"> </td><td class="centered">
+
+            ACTIVE
+
+          </td><td class="centered">
+
+            CONNECTED STANDBY
+
+          </td></tr></thead><tr class="even  1"><td class="dateTime">2024-11-11
+
+      - 2025-06-30</td><td class="hms">27:50:27</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">17:12:54</td><td class="nullValue">-</td></tr><tr class="odd  2"><td class="dateTime">2025-06-30
+
+      - 2025-07-07</td><td class="hms">24:45:03</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">21:31:05</td><td class="nullValue">-</td></tr><tr class="even  3"><td class="dateTime">2025-07-07
+
+      - 2025-07-14</td><td class="hms">14:01:40</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">13:57:13</td><td class="nullValue">-</td></tr><tr class="odd  4"><td class="dateTime">2025-07-14
+
+      - 2025-07-25</td><td class="hms">37:47:24</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">30:24:27</td><td class="nullValue">-</td></tr><tr class="even  5"><td class="dateTime">2025-07-25
+
+      - 2025-08-25</td><td class="hms">105:36:12</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">63:18:46</td><td class="nullValue">-</td></tr><tr class="odd  6"><td class="dateTime">2025-08-25
+
+      - 2025-10-06</td><td class="hms">286:08:13</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">193:14:10</td><td class="nullValue">-</td></tr><tr class="even  7"><td class="dateTime">2025-10-06
+
+      - 2025-10-27</td><td class="hms">52:24:30</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">51:24:47</td><td class="nullValue">-</td></tr><tr class="odd  8"><td class="dateTime">2025-10-27
+
+      - 2025-12-08</td><td class="hms">299:35:06</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">217:58:27</td><td class="nullValue">-</td></tr><tr class="even  9"><td class="dateTime">2025-12-08
+
+      - 2025-12-18</td><td class="hms">155:58:14</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">29:14:23</td><td class="nullValue">-</td></tr><tr class="odd  10"><td class="dateTime">2025-12-18
+
+      - 2025-12-22</td><td class="hms">31:09:11</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">35:28:22</td><td class="nullValue">-</td></tr><tr class="even  11"><td class="dateTime">2025-12-22
+
+      - 2025-12-29</td><td class="hms">7:12:51</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">5:52:32</td><td class="nullValue">-</td></tr><tr class="odd  12"><td class="dateTime">2025-12-29
+
+      - 2026-01-05</td><td class="hms">41:03:09</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">53:57:41</td><td class="nullValue">-</td></tr><tr class="even  13"><td class="dateTime">2026-01-05
+
+      - 2026-01-12</td><td class="hms">29:55:46</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">40:16:17</td><td class="nullValue">-</td></tr><tr class="odd  14"><td class="dateTime">2026-01-12
+
+      - 2026-01-19</td><td class="hms">50:05:44</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">592656:19:53</td><td class="nullValue">-</td></tr><tr class="even  15"><td class="dateTime">2026-01-19
+
+      - 2026-01-26</td><td class="hms">592668:29:12</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">35:07:10</td><td class="nullValue">-</td></tr><tr class="odd  16"><td class="dateTime">2026-01-26
+
+      - 2026-02-02</td><td class="hms">38:26:28</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">22:25:32</td><td class="nullValue">-</td></tr><tr class="even  17"><td class="dateTime">2026-02-02
+
+      - 2026-02-09</td><td class="hms">31:51:00</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">24:21:43</td><td class="nullValue">-</td></tr><tr class="odd  18"><td class="dateTime">2026-02-09
+
+      - 2026-02-16</td><td class="hms">39:09:40</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">35:37:23</td><td class="nullValue">-</td></tr><tr class="even  19"><td class="dateTime">2026-02-16</td><td class="hms">3:10:53</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">7:35:36</td><td class="nullValue">-</td></tr><tr class="odd  20"><td class="dateTime">2026-02-17</td><td class="hms">4:20:56</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">1:56:17</td><td class="nullValue">-</td></tr><tr class="even  21"><td class="dateTime">2026-02-18</td><td class="hms">4:24:56</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">4:03:08</td><td class="nullValue">-</td></tr><tr class="odd  22"><td class="dateTime">2026-02-19</td><td class="hms">3:46:16</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">6:18:42</td><td class="nullValue">-</td></tr><tr class="even  23"><td class="dateTime">2026-02-20</td><td class="hms">6:30:05</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">6:12:26</td><td class="nullValue">-</td></tr><tr class="odd  24"><td class="dateTime">2026-02-21</td><td class="hms">4:46:28</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">7:09:55</td><td class="nullValue">-</td></tr><tr class="even  25"><td class="dateTime">2026-02-22</td><td class="hms">6:30:53</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">7:48:31</td><td class="nullValue">-</td></tr><tr class="odd  26"><td class="dateTime">2026-02-23</td><td class="hms">6:50:08</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">5:20:54</td><td class="nullValue">-</td></tr><tr class="even  27"><td class="dateTime">2026-02-24</td><td class="hms">4:13:33</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">6:01:07</td><td class="nullValue">-</td></tr><tr class="odd  28"><td class="dateTime">2026-02-25</td><td class="hms">6:08:20</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">8:03:05</td><td class="nullValue">-</td></tr></table><h2>
+
+      Battery capacity history
+
+    </h2><div class="explanation">
+
+      Charge capacity history of the system's batteries
+
+    </div><table><colgroup><col/><col class="col2"/><col style="width: 10em;"/></colgroup><thead><tr><td><span>PERIOD</span></td><td class="centered">
+
+            FULL CHARGE CAPACITY
+
+          </td><td class="centered">
+
+            DESIGN CAPACITY
+
+          </td></tr></thead><tr class="even  1"><td class="dateTime">2024-11-11
+
+      - 2025-06-30</td><td class="mw">58.004 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  2"><td class="dateTime">2025-06-30
+
+      - 2025-07-07</td><td class="mw">58.004 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  3"><td class="dateTime">2025-07-07
+
+      - 2025-07-14</td><td class="mw">58.008 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  4"><td class="dateTime">2025-07-14
+
+      - 2025-07-25</td><td class="mw">58.330 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  5"><td class="dateTime">2025-07-25
+
+      - 2025-08-25</td><td class="mw">58.424 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  6"><td class="dateTime">2025-08-25
+
+      - 2025-10-06</td><td class="mw">57.707 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  7"><td class="dateTime">2025-10-06
+
+      - 2025-10-27</td><td class="mw">57.365 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  8"><td class="dateTime">2025-10-27
+
+      - 2025-12-08</td><td class="mw">56.295 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  9"><td class="dateTime">2025-12-08
+
+      - 2025-12-18</td><td class="mw">54.852 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  10"><td class="dateTime">2025-12-18
+
+      - 2025-12-22</td><td class="mw">56.031 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  11"><td class="dateTime">2025-12-22
+
+      - 2025-12-29</td><td class="mw">57.521 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  12"><td class="dateTime">2025-12-29
+
+      - 2026-01-05</td><td class="mw">56.169 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  13"><td class="dateTime">2026-01-05
+
+      - 2026-01-12</td><td class="mw">56.120 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  14"><td class="dateTime">2026-01-12
+
+      - 2026-01-19</td><td class="mw">53.049 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  15"><td class="dateTime">2026-01-19
+
+      - 2026-01-26</td><td class="mw">53.904 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  16"><td class="dateTime">2026-01-26
+
+      - 2026-02-02</td><td class="mw">56.704 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  17"><td class="dateTime">2026-02-02
+
+      - 2026-02-09</td><td class="mw">55.092 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  18"><td class="dateTime">2026-02-09
+
+      - 2026-02-16</td><td class="mw">54.775 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  19"><td class="dateTime">2026-02-16</td><td class="mw">54.684 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  20"><td class="dateTime">2026-02-17</td><td class="mw">55.106 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  21"><td class="dateTime">2026-02-18</td><td class="mw">55.290 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  22"><td class="dateTime">2026-02-19</td><td class="mw">55.405 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  23"><td class="dateTime">2026-02-20</td><td class="mw">54.847 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  24"><td class="dateTime">2026-02-21</td><td class="mw">54.673 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  25"><td class="dateTime">2026-02-22</td><td class="mw">56.900 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  26"><td class="dateTime">2026-02-23</td><td class="mw">57.162 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="even  27"><td class="dateTime">2026-02-24</td><td class="mw">56.778 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr><tr class="odd  28"><td class="dateTime">2026-02-25</td><td class="mw">57.193 mWh
+
+        </td><td class="mw">58.004 mWh
+
+        </td></tr></table><h2>
+
+      Battery life estimates
+
+    </h2><div class="explanation2">
+
+      Battery life estimates based on observed drains
+
+    </div><table><colgroup><col/><col class="col2"/><col style="width: 10em;"/><col style=""/><col style="width: 10em;"/><col style="width: 10em;"/><col style="width: 10em;"/></colgroup><thead><tr class="rowHeader"><td> </td><td colspan="2" class="centered">
+
+            AT FULL CHARGE
+
+          </td><td class="colBreak"> </td><td colspan="2" class="centered">
+
+            AT DESIGN CAPACITY
+
+          </td></tr><tr class="rowHeader"><td>
+
+            PERIOD
+
+          </td><td class="centered"><span>ACTIVE</span></td><td class="centered"><span>CONNECTED STANDBY</span></td><td class="colBreak"> </td><td class="centered"><span>ACTIVE</span></td><td class="centered"><span>CONNECTED STANDBY</span></td></tr></thead><tr style="vertical-align:top" class="even  1"><td class="dateTime">2024-11-11
+
+      - 2025-06-30</td><td class="hms">3:30:22</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">3:30:22</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  2"><td class="dateTime">2025-06-30
+
+      - 2025-07-07</td><td class="hms">2:21:10</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:21:10</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  3"><td class="dateTime">2025-07-07
+
+      - 2025-07-14</td><td class="hms">2:29:45</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:29:45</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  4"><td class="dateTime">2025-07-14
+
+      - 2025-07-25</td><td class="hms">2:35:23</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:34:30</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  5"><td class="dateTime">2025-07-25
+
+      - 2025-08-25</td><td class="hms">3:42:26</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">3:40:50</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  6"><td class="dateTime">2025-08-25
+
+      - 2025-10-06</td><td class="hms">3:12:43</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">3:13:42</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  7"><td class="dateTime">2025-10-06
+
+      - 2025-10-27</td><td class="hms">2:49:14</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:51:07</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  8"><td class="dateTime">2025-10-27
+
+      - 2025-12-08</td><td class="hms">3:52:20</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">3:59:23</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  9"><td class="dateTime">2025-12-08
+
+      - 2025-12-18</td><td class="hms">12:48:56</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">13:33:07</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  10"><td class="dateTime">2025-12-18
+
+      - 2025-12-22</td><td class="hms">3:16:17</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">3:23:12</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  11"><td class="dateTime">2025-12-22
+
+      - 2025-12-29</td><td class="hms">4:02:48</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">4:04:51</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  12"><td class="dateTime">2025-12-29
+
+      - 2026-01-05</td><td class="hms">2:47:20</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:52:49</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  13"><td class="dateTime">2026-01-05
+
+      - 2026-01-12</td><td class="hms">2:10:08</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:14:31</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  14"><td class="dateTime">2026-01-12
+
+      - 2026-01-19</td><td class="hms">3:30:39</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">3:50:20</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  15"><td class="dateTime">2026-01-19
+
+      - 2026-01-26</td><td class="hms">45165:39:11</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">48601:00:16</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  16"><td class="dateTime">2026-01-26
+
+      - 2026-02-02</td><td class="hms">4:06:39</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">4:12:19</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  17"><td class="dateTime">2026-02-02
+
+      - 2026-02-09</td><td class="hms">3:23:26</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">3:34:11</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  18"><td class="dateTime">2026-02-09
+
+      - 2026-02-16</td><td class="hms">3:08:29</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">3:19:36</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  19"><td class="dateTime">2026-02-16</td><td class="hms">3:48:58</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">4:02:52</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  20"><td class="dateTime">2026-02-17</td><td class="hms">4:16:06</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">4:29:34</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  21"><td class="dateTime">2026-02-18</td><td class="hms">5:01:23</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">5:16:11</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  22"><td class="dateTime">2026-02-19</td><td class="hms">3:39:24</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">3:49:41</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  23"><td class="dateTime">2026-02-20</td><td class="hms">2:43:44</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:53:09</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  24"><td class="dateTime">2026-02-21</td><td class="hms">2:14:14</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:22:24</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  25"><td class="dateTime">2026-02-22</td><td class="hms">2:43:58</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:47:09</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  26"><td class="dateTime">2026-02-23</td><td class="hms">2:25:39</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:27:48</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="even  27"><td class="dateTime">2026-02-24</td><td class="hms">1:58:35</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:01:09</td><td class="nullValue">-</td></tr><tr style="vertical-align:top" class="odd  28"><td class="dateTime">2026-02-25</td><td class="hms">2:05:10</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">2:06:57</td><td class="nullValue">-</td></tr></table><div class="explanation2" style="margin-top: 1em; margin-bottom: 0.4em;">
+
+      Current estimate of battery life based on all observed drains since OS install
+
+    </div><table><colgroup><col/><col class="col2"/><col style="width: 10em;"/><col style=""/><col style="width: 10em;"/><col style="width: 10em;"/><col style="width: 10em;"/></colgroup><tr class="even" style="vertical-align:top"><td>
+
+          Since OS install
+
+        </td><td class="hms">1594:38:47</td><td class="nullValue">-</td><td class="colBreak"> </td><td class="hms">1594:00:51</td><td class="nullValue">-</td></tr></table><br/><br/><br/></body></html>
